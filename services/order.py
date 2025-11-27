@@ -1,6 +1,9 @@
+import datetime
+
 from django.contrib.auth import get_user_model
 from django.db import transaction
 from django.db.models import QuerySet
+
 
 from db.models import Order, Ticket
 
@@ -11,11 +14,13 @@ def create_order(
         username: str,
         date: str = None
 ) -> Order:
-    order = Order.objects.create(
+    order = Order(
         user=get_user_model().objects.get(username=username)
     )
     if date:
-        Order.objects.filter(id=order.id).update(created_at=date)
+        order.created_at = date
+
+    order.save()
 
     ticket_instances = list()
     for ticket_data in tickets:
@@ -32,7 +37,7 @@ def create_order(
     return order
 
 
-def get_orders(username: str = None) -> QuerySet:
+def get_orders(username: str = None) -> QuerySet[Order]:
     queryset = Order.objects.all()
     if username:
         queryset = queryset.filter(user__username=username)
